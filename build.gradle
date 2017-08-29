@@ -1,0 +1,89 @@
+import org.gradle.workers.WorkerExecutor
+
+import javax.inject.Inject
+
+// The implementation of a single unit of work
+class WorkerExperiment implements Runnable {
+    int start
+    int finish
+
+    @Inject
+    public WorkerExperiment(int beginning, int end) {
+        this.start = beginning
+        this.finish = end
+    }
+
+    @Override
+    public void run() {
+        start.upto(finish) {
+            Thread.sleep(100)
+            println "Test HACK ${it}"
+        }
+    }
+}
+
+
+class WorkerClass extends DefaultTask {
+    int start
+    int end
+
+    final WorkerExecutor workerExecutor
+
+    // The WorkerExecutor will be injected by Gradle at runtime
+    @Inject
+    public WorkerClass(WorkerExecutor workerExecutor) {
+        this.workerExecutor = workerExecutor
+    }
+
+    @TaskAction
+    void workerExp() {
+        getWorkerExecutor().submit( WorkerExperiment.class, new Action<WorkerConfiguration>() {
+            @Override
+            public void execute( WorkerConfiguration config ) {
+                config.setDisplayName( "Experiment" );
+                config.setParams(start,end)
+                config.setIsolationMode( IsolationMode.CLASSLOADER )
+            }
+        } );
+    }
+        // Create and submit a unit of work for each file
+        /*workerExecutor.submit(WorkerExperiment.class) { config ->
+            config.isolationMode = IsolationMode.CLASSLOADER
+            // Configure the options for the forked process
+            config.forkOptions { JavaForkOptions options ->
+               // options.maxHeapSize = "512m"
+              //  options.systemProperty "org.gradle.sample.workerExp", "true"
+            }
+
+            // Constructor parameters for the unit of work implementation
+            config.params start,end
+        }
+
+        // Wait for all asynchronous work to complete before continuing
+        workerExecutor.await()
+    }
+
+*/
+}
+
+task A(type: WorkerClass) {
+    start = 1
+    end = 50
+    //source("sources")
+}
+
+
+task B(type: WorkerClass) {
+    start = 51
+    end = 100
+    //source("sources")
+}
+
+task C(type: WorkerClass) {
+    start = 101
+    end = 150
+   // source("sources")
+}
+
+A.dependsOn B
+A.dependsOn C

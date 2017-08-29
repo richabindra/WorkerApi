@@ -1,0 +1,24 @@
+buildscript {
+    repositories {
+        maven {
+            url uri('../repo')
+        }
+    }
+    dependencies {
+        classpath group: 'org.gradle', name: 'customPlugin',
+				  version: '1.0-SNAPSHOT'
+    }
+}
+apply plugin: 'org.samples.greeting'
+
+/*task greeting(type: org.gradle.GreetingTask1) {
+    doLast {
+        greeting = ['morning', 'afternoon', 'evening', 'night']
+
+    }
+}*/
+/*
+task reverseFiles(type: GreetingTask1) {
+    outputDir = file("${buildDir}/reversed")
+    source("sources")
+}*/
